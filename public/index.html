@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>新しいスライド表示の提案</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <link rel="stylesheet" href="/css/main.css" />
+    <link rel="stylesheet" href="/css/slides.css" />
+    <script src="/vendor/jquery/jquery.js"></script>
+    <script src="/vendor/remark/remark.js"></script>
+    <script src="/js/msg_panel.js"></script>
+    <script src="/js/main.js"></script>
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle
+# 新しいスライド表示の提案
+
+Chiba.pm #4.1
+---
+class: center
+## 自己紹介
+
+![Avatar](https://pbs.twimg.com/profile_images/342650641/IMG_0430_2_bigger.jpg)
+
+こばやし けんいち (@Niratama)
+
+ソーシャルゲーム屋<br>
+Mojolicious大好き<br>
+サーバーサイドエンジニアなはずなのに、最近はJavaScriptばっか書いてる気が<br>
+---
+class: center, middle
+## いきなりですが
+
+勉強会とかリアルタイムにTweetしてくれる人いると活気があるようでいい感じ
+
+現場にいなくても雰囲気伝わるし
+
+---
+class: center, middle
+そして、Chiba.pmのハッシュタグは
+
+.large[#chibapm]
+
+です！
+---
+class: center, middle
+という感じで、スライドにTweetをリアルタイム表示する仕組みを用意してみました
+
+＿人人人人人人人人人人人人＿<br>
+＞　NHK NEWS WEBのパクり　＜<br>
+￣Y^Y^Y^Y^Y^Y^Y^Y^Y^Y^Y￣
+---
+## どうやってんの？
+
+1. [Twitter Streaming API](https://dev.twitter.com/docs/streaming-apis)から#chibapmの入ったTweetのみフィルタリングして取得
+2. 受け取ったTweetをRedisにPublish
+3. RedisからSubscribeしたデータをWebSocketでブラウザに送信
+4. ブラウザでスライドに重ねて表示
+---
+## Twitter Streamの受信
+
+* Twitter APIは[statuses/filter](https://dev.twitter.com/docs/api/1.1/post/statuses/filter)を利用、trackパラメータでハッシュタグを指定
+* それ[Mojo::UserAgent](https://metacpan.org/pod/Mojo::UserAgent)でできるよ
+ * $ua-&gt;inactivity_timeoutを長めに設定する
+ * $tx-&gt;res-&gt;contentのreadイベントを乗っ取ってデータを受け取る
+  * [CookbookのStreaming responseの項目](https://metacpan.org/pod/release/SRI/Mojolicious-4.58/lib/Mojolicious/Guides/Cookbook.pod#Streaming-response)参照
+---
+## Redis
+
+* NoSQLデータベースサーバ
+* 今回Redisは[Pub/Sub](http://redis.io/commands#pubsub)機能しか使ってません
+ * データをPUBLISHでサーバに送ると、現在SUBSCRIBEしているクライアントに対してそのデータが送られる
+* ジョブキューと違ってSUBSCRIBEしていない間のデータは受け取れません
+---
+## WebSocket
+
+* それMojoliciousで（以下略
+* WebSocketの仕様としてPING/PONGの仕組みがあるけどMojoliciousでは機能としては用意してない
+ * $self-&gt;send([1, 0, 0, 0, 9, $data])で定期的にクライアントに送ってやると、クライアントからPONGフレームが返ってくる
+---
+## クライアント
+
+* スライド表示プログラムは[remark](https://github.com/gnab/remark/)というJavaScript製のツールを利用
+ * HTMLファイル内に埋め込んだMarkdownファイルをスライドとして表示できる
+* ツイート表示部分はjQueryを使って表示
+ * スライド表示と独立しているので他のツールと組み合わせることもできるかも？
+---
+class: center
+## 今回クライアント作るのに便利だったサイト
+
+[Plunker](http://plnkr.co/)
+
+Web上でJavaScriptを書いて試せるサイト
+
+今回のクライアント部分も[ここで実験](http://plnkr.co/edit/AkqeaMEnrJAolGRAAAhS)しています
+---
+class: center
+今回の資料とファイルはGitHubに置いておきます
+
+https://github.com/niratama/chibapm4
+
+ご自由にご利用ください
+    </textarea>
+    <div id="panel"></div>
+    <div id="template">
+      <div class="margin-container">
+        <img class="avatar">
+        <span class="text"></span>
+        <span class="names">
+          <span class="name"></span>
+          (@<span class="screen_name"></span>)
+        </span>
+      </div>
+    </div>
+    <div id="tweets"></div>
+  </body>
+</html>
+<!-- vi:set sts=2 sw=2 et: -->

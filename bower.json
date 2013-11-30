@@ -1,0 +1,30 @@
+{
+  "name": "chibapm4",
+  "version": "0.0.0",
+  "authors": [
+    "Kenichi Kobayashi <niratama3@gmail.com>"
+  ],
+  "description": "for chiba.pm #4",
+  "main": "public/js/main.js",
+  "license": "BSD-2-Clause",
+  "homepage": "https://github.com/niratama/chibapm4",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "remark": "gnab/remark#~0.5.7",
+    "jquery": "~2.0.3"
+  },
+  "exportsOverride": {
+    "remark": {
+      "": [
+        "remark.js",
+        "remark.min.js"
+      ]
+    }
+  }
+}

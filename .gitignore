@@ -1,0 +1,5 @@
+/node_modules/
+local
+bower_components
+*.swp
+.perl-version
